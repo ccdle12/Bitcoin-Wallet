@@ -3,6 +3,7 @@ from binascii import unhexlify, hexlify
 from bitcoin_tools import PrivateKey, blockchain_explorer_helper, UTXO, Tx, TxIn, TxOut, blockchain_explorer_helper, satoshi_to_bitcoin, generate_p2pkh_pub_key, generate_reedemScript, sha256_ripemd160, generate_p2sh_address, bitcoin_to_satoshi, SIGHASH_ALL, generate_p2sh_pub_key
 from io import BytesIO
 import json
+import sys
 
 class Main:
     def __init__(self, secret=None):
@@ -36,11 +37,10 @@ class Main:
     def get_UTXOs(self, mainnet=False):
         response = blockchain_explorer_helper.request_UTXOs(self.get_address())
         json_response = response[0].json()
+        print(json_response)
 
         UTXOs = []
-        if response[1] == 'block_cypher':
-            if 'txrefs' in json_response:
-                print("TX_REFS: {}".format(json_response.get('txrefs')))
+        if response[1] == 'block_cypher' and 'txres' in json_response:
                 tx_refs = json_response.get('txrefs')
 
                 if len(tx_refs) > 0:
@@ -49,11 +49,30 @@ class Main:
 
 
         self.UTXOs = UTXOs
+
+        # Sor the UTXO's according to value
+        self.UTXOs.sort(key=lambda x: x.value, reverse=False)
         return self.UTXOs
 
     @classmethod
     def import_private_key(cls, secret):
         return cls(secret)
+
+    def calculate_inputs(self, target_amount):
+        i = 0
+        j = len(self.UTXOs) - 1
+
+
+        last_found_inputs = (0, 0)
+        current_lowest_output = sys.maxsize
+
+        inputs = []
+        while i < j:
+            if self.UTXOs[i].value > target_amount:
+                inputs.append(self.UTXOs[i].tx_hash, self.UTXOs)
+
+
+        return (0, 0)
  
     def send_transaction(self, prev_tx, prev_index, target_addr, amount, change_amount, redeem_script=None, p2sh=False):
         # Initialize Inputs
