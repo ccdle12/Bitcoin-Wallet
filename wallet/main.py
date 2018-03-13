@@ -1,6 +1,6 @@
 from unittest import TestCase
 from binascii import unhexlify, hexlify
-from bitcoin_tools import PrivateKey, blockchain_explorer_helper, UTXO, Tx, TxIn, TxOut, blockchain_explorer_helper, satoshi_to_bitcoin, generate_p2pkh_pub_key, generate_reedemScript, sha256_ripemd160, generate_p2sh_address, bitcoin_to_satoshi, SIGHASH_ALL, generate_p2sh_pub_key
+from bitcoin_tools import PrivateKey, blockchain_explorer_helper as BlockExplorer, UTXO, Tx, TxIn, TxOut, blockchain_explorer_helper, satoshi_to_bitcoin, generate_p2pkh_pub_key, generate_reedemScript, sha256_ripemd160, generate_p2sh_address, bitcoin_to_satoshi, SIGHASH_ALL, generate_p2sh_pub_key, Script, encode_base58_checksum, decode_base58
 from io import BytesIO
 import json
 import sys
@@ -15,6 +15,7 @@ class Main:
         self.sec = self.keys.public_key.get_sec(compressed=True)
 
         # Retrieve all existing UTXO's for this wallet (if any)
+        print("Get UTXOs called")
         self.get_UTXOs()
 
     def get_private_key(self):
@@ -37,10 +38,10 @@ class Main:
     def get_UTXOs(self, mainnet=False):
         response = blockchain_explorer_helper.request_UTXOs(self.get_address())
         json_response = response[0].json()
-        print(json_response)
+        # print(json_response)
 
         UTXOs = []
-        if response[1] == 'block_cypher' and 'txres' in json_response:
+        if response[1] == 'block_cypher' and 'txrefs' in json_response:
                 tx_refs = json_response.get('txrefs')
 
                 if len(tx_refs) > 0:
@@ -49,9 +50,14 @@ class Main:
 
 
         self.UTXOs = UTXOs
+        # print("UTXO Type: {}".format(type(.UTXOs))
 
         # Sor the UTXO's according to value
         self.UTXOs.sort(key=lambda x: x.value, reverse=False)
+        for i in self.UTXOs:
+            print("UTXO Object: {}\n".format(i))
+
+        print("Self UTXOs: {}".format(self.UTXOs))
         return self.UTXOs
 
     @classmethod
@@ -59,20 +65,46 @@ class Main:
         return cls(secret)
 
     def calculate_inputs(self, target_amount):
+        # Self.UTXOs was sorted on init
         i = 0
         j = len(self.UTXOs) - 1
 
+        target_amount = bitcoin_to_satoshi(target_amount)
 
-        last_found_inputs = (0, 0)
-        current_lowest_output = sys.maxsize
+
+        last_found_inputs = []
+        current_lowest_input = sys.maxsize
 
         inputs = []
         while i < j:
+
+            # i is the lowest valued object, its greater than the target amount, therefore we don't need to include anymore inputs
             if self.UTXOs[i].value > target_amount:
-                inputs.append(self.UTXOs[i].tx_hash, self.UTXOs)
+                print("Input used: {}".format(self.UTXOs[i]))
+                inputs.append((self.UTXOs[i].tx_hash, self.UTXOs[i].tx_index))
+                break
 
+            # Add i and j value to see if we need to use 2 inputs
+            input_amount = self.UTXOs[i].value + self.UTXOs[j].value
 
-        return (0, 0)
+            # Input amount is greater than equal to target_amount and lower than the current_lowest_input
+            if target_amount <= input_amount < current_lowest_input:
+                current_lowest_input = input_amount
+                inputs = []
+                inputs.append((self.UTXOs[i].tx_hash, self.UTXOs[i].tx_index))
+                inputs.append(((self.UTXOs[j].tx_hash, self.UTXOs[j].tx_index)))
+
+            # If input amount equals the target break
+            if input_amount == target_amount:
+                break
+
+            # if input_amount is greater than target amount, decrement j else increment i
+            if input_amount > target_amount:
+                j -= 1
+            else:
+                i += 1
+
+        return inputs
  
     def send_transaction(self, prev_tx, prev_index, target_addr, amount, change_amount, redeem_script=None, p2sh=False):
         # Initialize Inputs
