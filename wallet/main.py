@@ -6,7 +6,7 @@ import json
 import sys
 
 class Main:
-    def __init__(self, secret=None):
+    def __init__(self, secret=None, UTXOs=None):
         if secret is None:
             self.keys = PrivateKey()
         else:
@@ -16,7 +16,8 @@ class Main:
 
         # Retrieve all existing UTXO's for this wallet (if any)
         print("Get UTXOs called")
-        self.get_UTXOs()
+        if UTXOs is None:
+            self.get_UTXOs()
 
     def get_private_key(self):
         return self.keys.get_WIF(mainnet=False)
@@ -38,8 +39,8 @@ class Main:
     def get_UTXOs(self, mainnet=False):
         response = blockchain_explorer_helper.request_UTXOs(self.get_address())
         json_response = response[0].json()
-        # print(json_response)
 
+        print("JSON Response schema: {}".format(response[1]))
         UTXOs = []
         if response[1] == 'block_cypher' and 'txrefs' in json_response:
                 tx_refs = json_response.get('txrefs')
@@ -48,16 +49,18 @@ class Main:
                     filtered = list(filter(lambda x: 'spent' in x and x.get('spent') is False, tx_refs))
                     UTXOs = list(map(lambda x: UTXO.parse(x), filtered))
 
+        # Do I need this?
+        if response[1] == 'block_trail' and 'data' in json_response:
+            data = json_response.get('data')
+            UTXOs = list(map(lambda x: UTXO.parse(x), data))
+
 
         self.UTXOs = UTXOs
-        # print("UTXO Type: {}".format(type(.UTXOs))
 
         # Sor the UTXO's according to value
         self.UTXOs.sort(key=lambda x: x.value, reverse=False)
-        for i in self.UTXOs:
-            print("UTXO Object: {}\n".format(i))
 
-        print("Self UTXOs: {}".format(self.UTXOs))
+        print("\nUTXOs: {} | Address: {}".format(self.UTXOs, self.get_address()))
         return self.UTXOs
 
     @classmethod
