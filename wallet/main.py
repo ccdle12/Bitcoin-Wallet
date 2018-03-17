@@ -15,7 +15,7 @@ class Main:
         self.sec = self.keys.public_key.get_sec(compressed=True)
 
         # Retrieve all existing UTXO's for this wallet (if any)
-        print("Get UTXOs called")
+        # print("Get UTXOs called")
         if UTXOs is None:
             self.get_UTXOs()
 
@@ -39,28 +39,32 @@ class Main:
     def get_UTXOs(self, mainnet=False):
         response = blockchain_explorer_helper.request_UTXOs(self.get_address())
         json_response = response[0].json()
-
+        print("JSON Response object: {}".format(response[0].json()))
         print("JSON Response schema: {}".format(response[1]))
+
         UTXOs = []
         if response[1] == 'block_cypher' and 'txrefs' in json_response:
+                # print("Has tx refs")
                 tx_refs = json_response.get('txrefs')
+                # print("TX Refs: {}".format(tx_refs))
 
                 if len(tx_refs) > 0:
                     filtered = list(filter(lambda x: 'spent' in x and x.get('spent') is False, tx_refs))
+                    # print("Filtered: {}".format(filtered))
                     UTXOs = list(map(lambda x: UTXO.parse(x), filtered))
+                    # print("UTXOs: {}".format(UTXOs))
 
         # Do I need this?
         if response[1] == 'block_trail' and 'data' in json_response:
             data = json_response.get('data')
             UTXOs = list(map(lambda x: UTXO.parse(x), data))
 
-
         self.UTXOs = UTXOs
 
         # Sor the UTXO's according to value
         self.UTXOs.sort(key=lambda x: x.value, reverse=False)
 
-        print("\nUTXOs: {} | Address: {}".format(self.UTXOs, self.get_address()))
+        # print("\nUTXOs: {} | Address: {}".format(self.UTXOs, self.get_address()))
         return self.UTXOs
 
     @classmethod
@@ -69,33 +73,32 @@ class Main:
 
     def calculate_inputs(self, target_amount):
         # Self.UTXOs was sorted on init
-        i = 0
-        j = len(self.UTXOs) - 1
+        low = 0
+        high = len(self.UTXOs) - 1
 
         target_amount = bitcoin_to_satoshi(target_amount)
-
 
         last_found_inputs = []
         current_lowest_input = sys.maxsize
 
         inputs = []
-        while i < j:
+        while low < high:
 
-            # i is the lowest valued object, its greater than the target amount, therefore we don't need to include anymore inputs
-            if self.UTXOs[i].value > target_amount:
-                print("Input used: {}".format(self.UTXOs[i]))
-                inputs.append((self.UTXOs[i].tx_hash, self.UTXOs[i].tx_index))
+            # low is the lowest valued item in a sorted list, it's greater than the target amount, therefore we don't need to include anymore inputs
+            if self.UTXOs[low].value > target_amount:
+                print("Input used: {}".format(self.UTXOs[low]))
+                inputs.append((self.UTXOs[low].tx_hash, self.UTXOs[low].tx_index))
                 break
 
-            # Add i and j value to see if we need to use 2 inputs
-            input_amount = self.UTXOs[i].value + self.UTXOs[j].value
+            # Add low and high value to see if we need to use 2 inputs
+            input_amount = self.UTXOs[low].value + self.UTXOs[high].value
 
-            # Input amount is greater than equal to target_amount and lower than the current_lowest_input
+            # Input amount is greater than or equal to target_amount and lower than the current_lowest_input
             if target_amount <= input_amount < current_lowest_input:
                 current_lowest_input = input_amount
                 inputs = []
-                inputs.append((self.UTXOs[i].tx_hash, self.UTXOs[i].tx_index))
-                inputs.append(((self.UTXOs[j].tx_hash, self.UTXOs[j].tx_index)))
+                inputs.append((self.UTXOs[low].tx_hash, self.UTXOs[low].tx_index))
+                inputs.append(((self.UTXOs[low].tx_hash, self.UTXOs[high].tx_index)))
 
             # If input amount equals the target break
             if input_amount == target_amount:
@@ -103,9 +106,9 @@ class Main:
 
             # if input_amount is greater than target amount, decrement j else increment i
             if input_amount > target_amount:
-                j -= 1
+                high -= 1
             else:
-                i += 1
+                low += 1
 
         return inputs
  
