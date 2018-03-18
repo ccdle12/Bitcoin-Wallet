@@ -293,30 +293,29 @@ class MainTest(unittest.TestCase):
         # UTXO's = [0.002, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.05, 0.2]
 
         # Prev Tx Hash
-        # UTXO's = [
-        #           "58c42ac1e288779141325a4750ccfcccdd8c6e9132119b16e9da002e052be7ea",
-        #           "1b562bc7c059af8a61bec721bae5c8f47d929389049b38525045e6330ac7acf2",
-        #           "6061273f139ad7dbb00d455a05c646f6019fd3ec932c537c75e6f210efdb378d",
-        #           "2d3428280febd21527d716f982d9fb32f06a84dc99afd0ca2cdf9279373fab99",
-        #           "aa2fccef0207026c455e69e92e81cdded46db14be68ef0b5271d46e0fee2d041",
-        #           "c1ecbdd8710816fccc2bd37ca582ea1fd4a80c8dec5b6707a3f68d8e89a6e69d",
-        #           "3d61300976656c17557e8b5794901b6deedb97b3a8a743a67ddd49e24ebb7428",
-        #           "95477007db114639655032b03036540982303d7e2c54f6e2944b066b60398fd9",
-        #           "fea5cbf4efc220a5512d394279778f75937c253cac32c43047cadffc9ee4d85c"
-        #          ]
-    
-        print("Should use 1 input: 0.02")
+        prev_tx_UTXOs = [
+                  "58c42ac1e288779141325a4750ccfcccdd8c6e9132119b16e9da002e052be7ea",
+                  "1b562bc7c059af8a61bec721bae5c8f47d929389049b38525045e6330ac7acf2",
+                  "6061273f139ad7dbb00d455a05c646f6019fd3ec932c537c75e6f210efdb378d",
+                  "2d3428280febd21527d716f982d9fb32f06a84dc99afd0ca2cdf9279373fab99",
+                  "aa2fccef0207026c455e69e92e81cdded46db14be68ef0b5271d46e0fee2d041",
+                  "c1ecbdd8710816fccc2bd37ca582ea1fd4a80c8dec5b6707a3f68d8e89a6e69d",
+                  "3d61300976656c17557e8b5794901b6deedb97b3a8a743a67ddd49e24ebb7428",
+                  "95477007db114639655032b03036540982303d7e2c54f6e2944b066b60398fd9",
+                  "fea5cbf4efc220a5512d394279778f75937c253cac32c43047cadffc9ee4d85c"
+                 ]
         
-        # Send target_amount: 0.08
+        # Send target_amount: 0.0
         # Need to return prev_tx and prev_index
         tx_inputs = self.wallet4.calculate_inputs(0.02)
         print(tx_inputs)
         expected = 1
 
-        # print("TX INputs: {}".format(tx_inputs))
-        # expected = [("3d61300976656c17557e8b5794901b6deedb97b3a8a743a67ddd49e24ebb7428", 0), ("c1ecbdd8710816fccc2bd37ca582ea1fd4a80c8dec5b6707a3f68d8e89a6e69d", 0), ("aa2fccef0207026c455e69e92e81cdded46db14be68ef0b5271d46e0fee2d041", 0), ]
-
+        print("Should use 1 input: 0.02")
         self.assertEqual(len(tx_inputs), expected)
+
+        print("Should use prev tx hash at index 6 in prev_tx_UTXOs")
+        self.assertEqual(prev_tx_UTXOs[6], tx_inputs[0])
 
 
 
