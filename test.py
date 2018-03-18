@@ -315,8 +315,21 @@ class MainTest(unittest.TestCase):
         self.assertEqual(len(tx_inputs), expected)
 
         print("Should use prev tx hash at index 6 in prev_tx_UTXOs")
-        self.assertEqual(prev_tx_UTXOs[6], tx_inputs[0])
+        self.assertEqual(prev_tx_UTXOs[6], tx_inputs[0][0])
 
+        print("Should use 1 input, 0.05: 95477007db114639655032b03036540982303d7e2c54f6e2944b066b60398fd9")
+        tx_inputs = self.wallet4.calculate_inputs(0.049)
+        expected = 1
+
+        self.assertEqual(len(tx_inputs), expected)
+        self.assertEqual(prev_tx_UTXOs[7], tx_inputs[0][0])
+
+        print("Should use 1 input, 0.002: 58c42ac1e288779141325a4750ccfcccdd8c6e9132119b16e9da002e052be7ea")
+        tx_inputs = self.wallet4.calculate_inputs(0.00014853)
+        expected = 1
+
+        self.assertEqual(len(tx_inputs), expected)
+        self.assertEqual(prev_tx_UTXOs[0], tx_inputs[0][0])
 
 
         

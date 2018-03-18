@@ -108,7 +108,7 @@ class Main:
 
                 # Check if the high_pos value is sufficient as input
                 if high_val >= target_amount:
-                    inputs.append((self.UTXOs[high_pos].tx_hash))
+                    inputs.append((self.UTXOs[high_pos].tx_hash, self.UTXOs[high_pos].tx_index))
                     input_amount = high_val    
                 else:
                     # Use the combination of 2 inputs
