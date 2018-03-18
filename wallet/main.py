@@ -72,6 +72,7 @@ class Main:
         return cls(secret)
 
     def calculate_inputs(self, target_amount):
+        # Current Time Complexity: O (n log n)
         # Self.UTXOs was sorted on init
         low_pos = 0
         high_pos = len(self.UTXOs) - 1
