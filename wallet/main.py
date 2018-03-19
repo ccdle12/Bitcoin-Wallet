@@ -78,23 +78,18 @@ class Main:
         high_pos = len(self.UTXOs) - 1
 
         target_amount = bitcoin_to_satoshi(target_amount)
-        print("Target Amount in Satoshi: {}".format(target_amount))
-
+        
+        lowest_difference_to_target = sys.maxsize
         current_lowest_input = sys.maxsize
 
         inputs = []
-
         while low_pos < high_pos:
             # Values at each index position
             low_val = self.UTXOs[low_pos].value
             high_val = self.UTXOs[high_pos].value
 
-            print("Low val: {}".format(low_val))
-            print("High val: {}".format(high_val))
-
-            # low_pos is the low_posest valued item in a sorted list, it's greater than the target amount, therefore we don't need to include anymore inputs
+            # low_val is the lowest valued item in a sorted list, if it's greater than the target amount, we don't need to include anymore inputs
             if low_val > target_amount:
-                print("Input used: {}".format(self.UTXOs[low_pos]))
                 inputs = []
                 inputs.append((self.UTXOs[low_pos].tx_hash, self.UTXOs[low_pos].tx_index))
                 break
@@ -102,7 +97,7 @@ class Main:
             # Add low_pos and high_pos value to see if we need to use 2 inputs
             input_amount = low_val + high_val
 
-            # Input amount is greater than or equal to target_amount and low_poser than the current_lowest_input
+            # input_amount is greater than or equal to target_amount and lower than the current_lowest_input
             if target_amount <= input_amount < current_lowest_input:
                 inputs = []
 
@@ -112,8 +107,22 @@ class Main:
                     input_amount = high_val    
                 else:
                     # Use the combination of 2 inputs
-                    current_lowest_input = input_amount
                     inputs.append((self.UTXOs[low_pos].tx_hash, self.UTXOs[low_pos].tx_index))
+                    inputs.append(((self.UTXOs[high_pos].tx_hash, self.UTXOs[high_pos].tx_index)))
+
+                lowest_difference_to_target = input_amount - target_amount
+                current_lowest_input = input_amount
+
+            # input_amount is less than the target_amount, but can we add the next element to equal or be greater than the target and still be the lowest inputs
+            if target_amount > input_amount:
+                three_inputs = low_val + self.UTXOs[low_pos + 1].value + high_val
+                difference_between_inputs = three_inputs - target_amount
+
+                if target_amount <= three_inputs < current_lowest_input and difference_between_inputs < lowest_difference_to_target:
+                    inputs = []
+                    current_lowest_input = three_inputs
+                    inputs.append((self.UTXOs[low_pos].tx_hash, self.UTXOs[low_pos].tx_index))
+                    inputs.append((self.UTXOs[low_pos + 1].tx_hash, self.UTXOs[low_pos + 1].tx_index))
                     inputs.append(((self.UTXOs[high_pos].tx_hash, self.UTXOs[high_pos].tx_index)))
 
             # If input amount equals the target break
