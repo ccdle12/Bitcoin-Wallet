@@ -331,6 +331,38 @@ class MainTest(unittest.TestCase):
         self.assertEqual(len(tx_inputs), expected)
         self.assertEqual(prev_tx_UTXOs[0], tx_inputs[0][0])
 
+        print("Should use 2 input, 0.039: 1b562bc7c059af8a61bec721bae5c8f47d929389049b38525045e6330ac7acf2, 3d61300976656c17557e8b5794901b6deedb97b3a8a743a67ddd49e24ebb7428")
+        tx_inputs = self.wallet4.calculate_inputs(0.039)
+        expected = 2
+        
+        self.assertEqual(len(tx_inputs), expected)
+        self.assertEqual(prev_tx_UTXOs[1], tx_inputs[0][0])
+        self.assertEqual(prev_tx_UTXOs[6], tx_inputs[1][0])
+
+        print("Should use 2 input, 0.039: 58c42ac1e288779141325a4750ccfcccdd8c6e9132119b16e9da002e052be7ea, 95477007db114639655032b03036540982303d7e2c54f6e2944b066b60398fd9")
+        tx_inputs = self.wallet4.calculate_inputs(0.051)
+        expected = 2
+        
+        self.assertEqual(len(tx_inputs), expected)
+        self.assertEqual(prev_tx_UTXOs[0], tx_inputs[0][0])
+        self.assertEqual(prev_tx_UTXOs[7], tx_inputs[1][0])
+
+        print("Should use 2 input, 0.04: 1b562bc7c059af8a61bec721bae5c8f47d929389049b38525045e6330ac7acf2, 3d61300976656c17557e8b5794901b6deedb97b3a8a743a67ddd49e24ebb7428")
+        tx_inputs = self.wallet4.calculate_inputs(0.04)
+        expected = 2
+        
+        self.assertEqual(len(tx_inputs), expected)
+        self.assertEqual(prev_tx_UTXOs[1], tx_inputs[0][0])
+        self.assertEqual(prev_tx_UTXOs[6], tx_inputs[1][0])
+
+        print("Should use 1 input, 0.198: fea5cbf4efc220a5512d394279778f75937c253cac32c43047cadffc9ee4d85c")
+        tx_inputs = self.wallet4.calculate_inputs(0.198)
+        expected = 1
+        
+        self.assertEqual(len(tx_inputs), expected)
+        self.assertEqual(prev_tx_UTXOs[8], tx_inputs[0][0])
+        
+
 
         
 
