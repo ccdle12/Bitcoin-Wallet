@@ -24,8 +24,8 @@ class MainTest(unittest.TestCase):
             100897809677138163174856952607694300238573305027534078569886890414323321447504)
 
         # # mhpzxr92VHqCXy3Zpat41vGgQuv9YcKzt7
-        # cls.wallet5 = Main().import_private_key(
-        #     12196958284001970079242031404833655250066517166607428365484251744560960260904)
+        cls.wallet5 = Main().import_private_key(
+            12196958284001970079242031404833655250066517166607428365484251744560960260904)
 
 
     def test_private_key_generated(self):
@@ -221,24 +221,6 @@ class MainTest(unittest.TestCase):
         expected = 9
         self.assertEqual(expected, len(UTXOs))
 
-       
-
-    # def test_send_tx(self):
-    #     # # Address of wallet1: mhpzxr92VHqCXy3Zpat41vGgQuv9YcKzt7
-    #     # # Wallet 5
-
-    #     # print("Address: {}".format(self.wallet5.get_address()))
-
-    #     # # def send_transaction(self, prev_tx, prev_index, target_addr, amount, change_amount, redeem_script=None, p2sh=False):
-    #     # response = self.wallet4.send_transaction(unhexlify('7c95996721bba829589a622d4bed06410ab455a8be932271d53ec9630b586c20'), 1, 'n1adMtYYKT72d3NKjbFiE7Wv4tHSpiEC9M', 1.039, 0.01)
-
-    #     # self.assertEqual(409, response.status_code)
-
-    #     # print("Should find the optimum inputs according to target output amount")
-    #     # wallet2 = Main().import_private_key(11721815747117917583098828363610524599463178642721196404024595875870538950423)
-    #     # print("Printing UTXOs: {}".format(wallet2.UTXOs))
-    #     print("Printing Addres: {}".format(wallet2.get_address()))
-
     def test_UTXOs_on_start(self):
         # Address: n1adMtYYKT72d3NKjbFiE7Wv4tHSpiEC9M
         print("Should show a list of UTXOs when wallet is created")
@@ -369,14 +351,44 @@ class MainTest(unittest.TestCase):
         print("Should use 3 inputs, 0.09: 1b562bc7c059af8a61bec721bae5c8f47d929389049b38525045e6330ac7acf2, 6061273f139ad7dbb00d455a05c646f6019fd3ec932c537c75e6f210efdb378d, 95477007db114639655032b03036540982303d7e2c54f6e2944b066b60398fd9")
         tx_inputs = self.wallet4.calculate_inputs(0.09)
         expected = 3
-        
-        for i in tx_inputs:
-            print(i)
-
+    
         self.assertEqual(len(tx_inputs), expected)
         self.assertEqual(prev_tx_UTXOs[1], tx_inputs[0][0])
         self.assertEqual(prev_tx_UTXOs[2], tx_inputs[1][0])
         self.assertEqual(prev_tx_UTXOs[7], tx_inputs[2][0])
+
+        print("Should use 3 inputs, 0.322: 0 - 6, 8")
+        tx_inputs = self.wallet4.calculate_inputs(0.322)
+        expected = 8
+    
+        self.assertEqual(len(tx_inputs), expected)
+        self.assertEqual(prev_tx_UTXOs[0], tx_inputs[0][0])
+        self.assertEqual(prev_tx_UTXOs[1], tx_inputs[1][0])
+        self.assertEqual(prev_tx_UTXOs[2], tx_inputs[2][0])
+        self.assertEqual(prev_tx_UTXOs[3], tx_inputs[3][0])
+        self.assertEqual(prev_tx_UTXOs[4], tx_inputs[4][0])
+        self.assertEqual(prev_tx_UTXOs[5], tx_inputs[5][0])
+        self.assertEqual(prev_tx_UTXOs[6], tx_inputs[6][0])
+        self.assertEqual(prev_tx_UTXOs[8], tx_inputs[8][0])
+
+    def test_send_tx(self):
+        # Sender: mhpzxr92VHqCXy3Zpat41vGgQuv9YcKzt7
+        # Wallet: wallet5
+        # Balance before sending: 1.049
+
+        # Target: mfke2PVhGePAy1GfZNotr6LeXfQ5nwnZTa
+        # Amount: 
+        # Wallet: wallet4
+        
+        # print(self.wallet5.UTXOs)
+        # print(self.wallet5.calculate_inputs(0.55))
+        response = self.wallet5.send_transaction('n1adMtYYKT72d3NKjbFiE7Wv4tHSpiEC9M', 0.55)
+
+        self.assertEqual(201, response.status_code)
+
+
+
+    
         
 
 

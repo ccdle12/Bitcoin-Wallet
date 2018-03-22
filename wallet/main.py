@@ -19,6 +19,8 @@ class Main:
         if UTXOs is None:
             self.get_UTXOs()
 
+        self.balance = self.get_balance()
+
     def get_private_key(self):
         return self.keys.get_WIF(mainnet=False)
 
@@ -83,7 +85,7 @@ class Main:
         current_lowest_input = sys.maxsize
 
         inputs = []
-        while low_pos < high_pos:
+        while low_pos <= high_pos:
             # Values at each index position
             low_val = self.UTXOs[low_pos].value
             high_val = self.UTXOs[high_pos].value
@@ -136,18 +138,26 @@ class Main:
                 low_pos += 1
 
         return inputs
- 
-    def send_transaction(self, prev_tx, prev_index, target_addr, amount, change_amount, redeem_script=None, p2sh=False):
+    
+    #  def send_transaction(self, prev_tx, prev_index, target_addr, amount, change_amount, redeem_script=None, p2sh=False):
+    def send_transaction(self,target_addr, amount, redeem_script=None, p2sh=False):
         # Initialize Inputs
+        inputs_to_consume = self.calculate_inputs(amount)
+
         tx_inputs = []
 
-        # Create a tx input for transaction
-        tx_inputs.append(TxIn
-                         (prev_hash=prev_tx,
-                          prev_index=prev_index,
-                          script_sig=b'',
-                          sequence=0xffffffff
-                          ))
+        for inputs in inputs_to_consume:
+            print("TX Hash: {}".format(inputs[0].encode()))
+            prev_tx = unhexlify(inputs[0].encode())
+            prev_index = inputs[1]
+
+            # Create a tx input for transaction
+            tx_inputs.append(TxIn
+                            (prev_hash=prev_tx,
+                            prev_index=prev_index,
+                            script_sig=b'',
+                            sequence=0xffffffff
+                            ))
 
         # Initialize Outputs for transaction
         tx_outputs = []
@@ -180,8 +190,15 @@ class Main:
         #TODO: CHECK CHANGE ADDRESS TYPE TO GENERATE THE CORRECT SCRIPT PUB KEY
         change_output_p2pkh = generate_p2pkh_pub_key(self.get_address(mainnet=False))
 
+        # Temp solution for calculating change amount
+        print("Balance: {}\n".format(self.balance))
+        print("Output Amount: {}\n".format(output_amount_in_satoshis))
+        difference_in_satoshis = int((self.balance - output_amount_in_satoshis) * 0.1)
+        change_amount_in_satoshis = (self.balance - output_amount_in_satoshis) - difference_in_satoshis
+        print("Change Amount: {}\n".format(change_amount_in_satoshis))
+
         # Convert the change amount output to satoshis
-        change_amount_in_satoshis = bitcoin_to_satoshi(change_amount)
+        # change_amount_in_satoshis = bitcoin_to_satoshi(change_amount)
 
         # Create a tx output for the change transaction
         tx_outputs.append(TxOut
@@ -199,6 +216,15 @@ class Main:
                          tx_outs=tx_outputs,
                          locktime=0,
                          testnet=True)
+
+        balance_in_btc = satoshi_to_bitcoin(self.balance)
+        target_in_btc = satoshi_to_bitcoin(output_amount_in_satoshis)
+        change_amount_in_btc = satoshi_to_bitcoin(change_amount_in_satoshis)
+        print("Balance: {} | Target: {} | Change Amount: {}".format(balance_in_btc, target_in_btc, change_amount_in_btc))
+
+
+        print("")
+        # print("Transaction: {}".format(transaction))
 
         # Hash of the message to sign
         # if p2sh:
