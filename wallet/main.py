@@ -139,25 +139,32 @@ class Main:
 
         return inputs
     
-    #  def send_transaction(self, prev_tx, prev_index, target_addr, amount, change_amount, redeem_script=None, p2sh=False):
-    def send_transaction(self,target_addr, amount, redeem_script=None, p2sh=False):
+    def send_transaction(self, prev_tx, prev_index, target_addr, amount, change_amount, redeem_script=None, p2sh=False):
+    # def send_transaction(self,target_addr, amount, redeem_script=None, p2sh=False):
         # Initialize Inputs
-        inputs_to_consume = self.calculate_inputs(amount)
+        # inputs_to_consume = self.calculate_inputs(amount)
 
         tx_inputs = []
 
-        for inputs in inputs_to_consume:
-            print("TX Hash: {}".format(inputs[0].encode()))
-            prev_tx = unhexlify(inputs[0].encode())
-            prev_index = inputs[1]
+        # for inputs in inputs_to_consume:
+        #     print("TX Hash: {}".format(inputs[0].encode()))
+        #     prev_tx = unhexlify(inputs[0].encode())
+        #     prev_index = inputs[1]
 
-            # Create a tx input for transaction
-            tx_inputs.append(TxIn
-                            (prev_hash=prev_tx,
-                            prev_index=prev_index,
-                            script_sig=b'',
-                            sequence=0xffffffff
-                            ))
+        #     # Create a tx input for transaction
+        #     tx_inputs.append(TxIn
+        #                     (prev_hash=prev_tx,
+        #                     prev_index=prev_index,
+        #                     script_sig=b'',
+        #                     sequence=0xffffffff
+        #                     ))
+
+        tx_inputs.append(TxIn
+                        (prev_hash=prev_tx,
+                        prev_index=prev_index,
+                        script_sig=b'',
+                        sequence=0xffffffff
+                        ))
 
         # Initialize Outputs for transaction
         tx_outputs = []
@@ -193,8 +200,10 @@ class Main:
         # Temp solution for calculating change amount
         print("Balance: {}\n".format(self.balance))
         print("Output Amount: {}\n".format(output_amount_in_satoshis))
-        difference_in_satoshis = int((self.balance - output_amount_in_satoshis) * 0.1)
-        change_amount_in_satoshis = (self.balance - output_amount_in_satoshis) - difference_in_satoshis
+        # difference_in_satoshis = int((self.balance - output_amount_in_satoshis) * 0.1)
+        # change_amount_in_satoshis = (self.balance - output_amount_in_satoshis) - difference_in_satoshis
+
+        change_amount_in_satoshis = int(change_amount*100000000)
         print("Change Amount: {}\n".format(change_amount_in_satoshis))
 
         # Convert the change amount output to satoshis

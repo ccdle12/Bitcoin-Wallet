@@ -386,13 +386,39 @@ class MainTest(unittest.TestCase):
 
         self.assertEqual(201, response.status_code)
 
+class CodeChallenge(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        print("\n----------------------------------------------------------------------------------------")
+        print("!!! Starting Code Challenge Tests - Send Faucet BTC to the sending address !!!")
+        print("---------------------------------------------------------------------------------------\n")
+
+    #1. Generate a wallet - X
+    #2. Generate a public key - X
+    #3. Generate a testnet address - X
+    #2. Get faucet - X
+    #3. Generate a transaction
+    #4. Send the faucet to - mnpaCvZ1cHT3dnp7cdZyJkfWS1Tik8vnnF
+
+    def test_send_tx(self):
+        wallet = Main().import_private_key(15956832234917840258611738257544163098647015943658821795118819480914605430182)
+
+        # sending addr: mi96E8fXa5JmTDpBk9PgrQ6ipNRiEvpJwY
+
+        response = wallet.send_transaction(
+            prev_tx = unhexlify('3dfdb770ea4bbaa5ed473650bb24ee5d2478f870ac92ceba5a1b429523a3406c'),
+            prev_index = 0,
+            target_addr = 'mnpaCvZ1cHT3dnp7cdZyJkfWS1Tik8vnnF',
+            amount = 0.5,
+            change_amount = 0.149,
+            redeem_script=False,
+            p2sh=False)
+
+        # response = wallet.send_transaction('mnpaCvZ1cHT3dnp7cdZyJkfWS1Tik8vnnF', 1)
+
+        self.assertEqual(201, response.status_code)
 
 
-    
-        
-
-
-        
 
 if __name__ == '__main__':
     unittest.main()
